@@ -71,7 +71,9 @@ func main(){
 		suppressdesc = false
 		notacommand = false
 		var uinput string
-		fmt.Scanln(&uinput)
+		uiscanner := bufio.NewScanner(os.Stdin)
+		uiscanner.Scan()
+		uinput = uiscanner.Text()
 		uinputp := strings.Fields(uinput)
 		switch{
 			case uinputp[0] == "n":
