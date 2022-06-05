@@ -1,6 +1,7 @@
 101|Northwest Room|You are in the northwest room of the building. There is a staircase here that runs from the basement to the tower.|east 102, south 104, up 201, down 001
 102|Northeast Room|You are in the northeast room of the building. There is nothing special here.|west 101, south 103
 103|Southeast Room|You are in the southeast room of the building. There is nothing special here.|west 104, north 102
-104|Southwest Room|You are in the southwest room of the building. There is nothing special here.|east 103, north 101
+104|Southwest Room|You are in the southwest room of the building. There is a trapdoor here.|east 103, north 101, trapdoor 004
 201|Tower|You are in the tower. You can see the surrounding landscape.|down 101
 001|Basement|You are in the basement. It is dark, but you are unlikely to be eaten by a grue.|up 101
+004|Secret Room|You have found a secret room.|up 104
