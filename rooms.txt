@@ -1,6 +1,6 @@
-Northwest Room|You are in the northwest room of the building. There is a staircase here that runs from the basement to the tower.|-1|1|3|-1|4|5
-Northeast Room|You are in the northeast room of the building. There is nothing special here.|-1|-1|2|0|-1|-1
-Southeast Room|You are in the southeast room of the building. There is nothing special here.|1|-1|-1|3|-1|-1
-Southwest Room|You are in the southwest room of the building. There is nothing special here.|0|2|-1|-1|-1|-1
-Tower|You are in the tower. You can see the surrounding landscape.|-1|-1|-1|-1|-1|0
-Basement|You are in the basement. It is dark, but you are unlikely to be eaten by a grue.|-1|-1|-1|-1|0|-1
+101|Northwest Room|You are in the northwest room of the building. There is a staircase here that runs from the basement to the tower.|east 102, south 104, up 201, down 001
+102|Northeast Room|You are in the northeast room of the building. There is nothing special here.|west 101, south 103
+103|Southeast Room|You are in the southeast room of the building. There is nothing special here.|west 104, north 102
+104|Southwest Room|You are in the southwest room of the building. There is nothing special here.|east 103, north 101
+201|Tower|You are in the tower. You can see the surrounding landscape.|down 101
+001|Basement|You are in the basement. It is dark, but you are unlikely to be eaten by a grue.|up 101

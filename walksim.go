@@ -5,21 +5,22 @@ import (
 	"strings"
 	"os"
 	"bufio"
-	"strconv"
 )
 
 type Room struct {
 	name string
 	desc string
-	exits map[string]int
+	exits map[string]string
 }
 
 func main(){
-	var roomlist []Room
-	location := 0
+	roomlist := make(map[string]Room)
+	location := "101"
 	runloop := true
 	suppressdesc := false
+	
 	// read the rooms file and parse it out into the room list
+	
 	roomfile, err := os.Open("rooms.txt")
     if err != nil {
         fmt.Println(err)
@@ -32,16 +33,19 @@ func main(){
     for scanner.Scan() {
 		var newroom Room
         rawroom := strings.Split(scanner.Text(), "|")
-		newroom.name = rawroom[0]
-		newroom.desc = rawroom[1]
-		newroom.exits = make(map[string]int)
-		newroom.exits["north"], _ = strconv.Atoi(rawroom[2])
-		newroom.exits["east"], _ = strconv.Atoi(rawroom[3])
-		newroom.exits["south"], _ = strconv.Atoi(rawroom[4])
-		newroom.exits["west"], _ = strconv.Atoi(rawroom[5])
-		newroom.exits["up"], _ = strconv.Atoi(rawroom[6])
-		newroom.exits["down"], _ = strconv.Atoi(rawroom[7])
-		roomlist = append(roomlist, newroom)
+		roomid := rawroom[0]
+		newroom.name = rawroom[1]
+		newroom.desc = rawroom[2]
+		rawexits := rawroom[3]
+		newroom.exits = make(map[string]string)
+		exitlist := strings.Split(rawexits, ",")
+		for _, exitrow := range exitlist {
+			exitrowparsed := strings.Fields(exitrow)
+			dir := exitrowparsed[0]
+			dest := exitrowparsed[1]
+			newroom.exits[dir] = dest
+		}
+		roomlist[roomid] = newroom
     }
 
 	//print out the help entry once to get the player started
@@ -61,46 +65,52 @@ func main(){
 		fmt.Scanln(&uinput)
 		switch{
 			case uinput == "north" || uinput == "n":
-				if roomlist[location].exits["north"] < 0{
+				dest, ok := roomlist[location].exits["north"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["north"]
+					location = dest
 				}
 			case uinput == "east" || uinput == "e":
-				if roomlist[location].exits["east"] < 0{
+				dest, ok := roomlist[location].exits["east"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["east"]
+					location = dest
 				}
 			case uinput == "south" || uinput == "s":
-				if roomlist[location].exits["south"] < 0{
+				dest, ok := roomlist[location].exits["south"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["south"]
+					location = dest
 				}
 			case uinput == "west" || uinput == "w":
-				if roomlist[location].exits["west"] < 0{
+				dest, ok := roomlist[location].exits["west"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["west"]
+					location = dest
 				}
 			case uinput == "up" || uinput == "u":
-				if roomlist[location].exits["up"] < 0{
+				dest, ok := roomlist[location].exits["up"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["up"]
+					location = dest
 				}
 			case uinput == "down" || uinput == "d":
-				if roomlist[location].exits["down"] < 0{
+				dest, ok := roomlist[location].exits["down"]
+				if ok == false {
 					fmt.Println("You can't go that way.")
 					suppressdesc = true
 				} else {
-					location = roomlist[location].exits["down"]
+					location = dest
 				}
 			case uinput == "quit" || uinput == "q":
 				runloop = false
@@ -112,12 +122,9 @@ func main(){
 			case uinput == "look" || uinput == "l":
 				fmt.Println(roomlist[location].desc)
 				fmt.Printf("Exits:")
-				if roomlist[location].exits["north"] >= 0 { fmt.Printf(" north") }
-				if roomlist[location].exits["east"] >= 0 { fmt.Printf(" east") }
-				if roomlist[location].exits["south"] >= 0 { fmt.Printf(" south") }
-				if roomlist[location].exits["west"] >= 0 { fmt.Printf(" west") }
-				if roomlist[location].exits["up"] >= 0 { fmt.Printf(" up") }
-				if roomlist[location].exits["down"] >= 0 { fmt.Printf(" down") }
+				for key, _ := range roomlist[location].exits {
+					fmt.Printf(" %v", key)
+				}
 				fmt.Printf(".\n")
 				suppressdesc = true
 			default:
