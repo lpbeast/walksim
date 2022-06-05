@@ -13,6 +13,12 @@ type Room struct {
 	exits map[string]string
 }
 
+func printhelp() {
+	fmt.Println("Available Commands")
+	fmt.Println("These commands can be abbreviated with the first letter of the word:")
+	fmt.Println("north, east, south, west, up, down, quit, help, look")
+}
+
 func main(){
 	roomlist := make(map[string]Room)
 	location := "101"
@@ -49,9 +55,7 @@ func main(){
     }
 
 	//print out the help entry once to get the player started
-	fmt.Println("Available commands:")
-	fmt.Println("north, east, south, west, up, down, quit, help, look")
-	fmt.Println("You can use the first letter of a command instead of typing the whole thing.")
+	printhelp()
 	
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
@@ -64,62 +68,33 @@ func main(){
 		var uinput string
 		fmt.Scanln(&uinput)
 		switch{
-			case uinput == "north" || uinput == "n":
-				dest, ok := roomlist[location].exits["north"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "east" || uinput == "e":
-				dest, ok := roomlist[location].exits["east"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "south" || uinput == "s":
-				dest, ok := roomlist[location].exits["south"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "west" || uinput == "w":
-				dest, ok := roomlist[location].exits["west"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "up" || uinput == "u":
-				dest, ok := roomlist[location].exits["up"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "down" || uinput == "d":
-				dest, ok := roomlist[location].exits["down"]
-				if ok == false {
-					fmt.Println("You can't go that way.")
-					suppressdesc = true
-				} else {
-					location = dest
-				}
-			case uinput == "quit" || uinput == "q":
+			case uinput == "n":
+				uinput = "north"
+			case uinput == "e":
+				uinput = "east"
+			case uinput == "s":
+				uinput = "south"
+			case uinput == "w":
+				uinput = "west"
+			case uinput == "u":
+				uinput = "up"
+			case uinput == "d":
+				uinput = "down"
+			case uinput == "q":
+				uinput = "quit"
+			case uinput == "h":
+				uinput = "help"
+			case uinput == "l":
+				uinput = "look"
+			default:
+		}
+		switch{
+			case uinput == "quit":
 				runloop = false
-			case uinput == "help" || uinput == "h":
-				fmt.Println("Available commands:")
-				fmt.Println("north, east, south, west, up, down, quit, help, look")
-				fmt.Println("You can use the first letter of a command instead of typing the whole thing.")
+			case uinput == "help":
+				printhelp()
 				suppressdesc = true
-			case uinput == "look" || uinput == "l":
+			case uinput == "look":
 				fmt.Println(roomlist[location].desc)
 				fmt.Printf("Exits:")
 				for key, _ := range roomlist[location].exits {
@@ -128,7 +103,13 @@ func main(){
 				fmt.Printf(".\n")
 				suppressdesc = true
 			default:
-				fmt.Printf("I don't know what '%v' means.\n", uinput)
+				dest, ok := roomlist[location].exits[uinput]
+				if ok == false {
+					fmt.Printf("You can't do '%v' here.\n", uinput)
+					suppressdesc = true
+				} else {
+					location = dest
+				}
 		}
 	}
 	fmt.Println("Goodbye.")
