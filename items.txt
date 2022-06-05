@@ -1,0 +1,3 @@
+tea|A nice cup of tea.
+tae|Almost, but not completely, unlike tea.
+gun|An elegant firearm suitable for hanging on the wall.
