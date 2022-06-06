@@ -40,6 +40,23 @@ func disproom(r map[string]Room, l string) {
 	}
 }
 
+func (r Room) String() string {
+	var result string
+	result += r.desc + "\n" + "Exits:"
+	for key, _ := range r.exits {
+		result += " " + key
+	}
+	result += "."
+	for key, _ := range r.inv {
+		result += "\nYou see " + r.inv[key].name + " here."
+	}
+	return result
+}
+
+func (i Item) String() string {
+	return i.desc
+}
+
 func main(){
 	roomlist := make(map[string]Room)
 	invlist := make(map[string]Item)
@@ -106,7 +123,8 @@ func main(){
 
 	//print out the help entry once to get the player started
 	printhelp()
-	disproom(roomlist, location)
+	fmt.Println(roomlist[location])
+	uiscanner := bufio.NewScanner(os.Stdin)
 	
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
@@ -116,7 +134,7 @@ func main(){
 		fmt.Printf(">> ")
 		suppressdesc = true
 		notacommand = false
-		uiscanner := bufio.NewScanner(os.Stdin)
+		//uiscanner := bufio.NewScanner(os.Stdin)
 		uiscanner.Scan()
 		uinput := uiscanner.Text()
 		uinputp := strings.Fields(uinput)
@@ -158,15 +176,15 @@ func main(){
 				
 			case uinputp[0] == "look":
 				if len(uinputp) == 1 {
-					disproom(roomlist, location)
+					fmt.Println(roomlist[location])
 				} else {
 					target, ok := roomlist[location].inv[uinputp[1]]
 					if ok {
-						fmt.Println(target.desc)
+						fmt.Println(target)
 					} else {
 						target, ok := playerinv[uinputp[1]]
 						if ok {
-							fmt.Println(target.desc)
+							fmt.Println(target)
 						} else {
 							fmt.Println("You don't see that here.")
 						}
