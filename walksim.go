@@ -24,20 +24,8 @@ func printhelp() {
 	fmt.Println("These commands can be abbreviated with the first letter of the word:")
 	fmt.Println("north, east, south, west, up, down, quit, help, look")
 	fmt.Println("These commands must be typed out in full:")
-	fmt.Println("put, drop, inv, open(NYI), close(NYI)")
+	fmt.Println("get, drop, inv, use")
 	fmt.Println("")
-}
-
-func disproom(r map[string]Room, l string) {
-	fmt.Println(r[l].desc)
-	fmt.Printf("Exits:")
-	for key, _ := range r[l].exits {
-		fmt.Printf(" %v", key)
-	}
-	fmt.Printf(".\n")
-	for key, _ := range r[l].inv {
-		fmt.Printf("You see %s here.\n", r[l].inv[key].name)
-	}
 }
 
 func (r Room) String() string {
@@ -55,6 +43,16 @@ func (r Room) String() string {
 
 func (i Item) String() string {
 	return i.desc
+}
+
+func (i *Item) use() string {
+	result := "You use " + i.name + ".\n"
+	return result
+}
+
+func (i *Item) useon(target *Item) string{
+	result := "You use " + i.name + " on " + target.name + ".\n"
+	return result
 }
 
 func main(){
@@ -129,12 +127,11 @@ func main(){
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
 		if suppressdesc == false {
-			disproom(roomlist, location)
+			fmt.Println(roomlist[location])
 		}
 		fmt.Printf(">> ")
 		suppressdesc = true
 		notacommand = false
-		//uiscanner := bufio.NewScanner(os.Stdin)
 		uiscanner.Scan()
 		uinput := uiscanner.Text()
 		uinputp := strings.Fields(uinput)
@@ -162,7 +159,8 @@ func main(){
 				uinputp[0] = "look"
 			case uinputp[0] == "north" || uinputp[0] == "south" || uinputp[0] == "east" || uinputp[0] == "west":
 			case uinputp[0] == "up" || uinputp[0] == "down" || uinputp[0] == "help" || uinputp[0] == "quit" || uinputp[0] == "look":
-			case uinputp[0] == "get" || uinputp[0] == "drop" || uinputp[0] == "open" || uinputp[0] == "close" || uinputp[0] == "inv":
+			case uinputp[0] == "get" || uinputp[0] == "drop" || uinputp[0] == "open" || uinputp[0] == "close":
+			case uinputp[0] == "inv" || uinputp[0] == "use":
 			default:
 				notacommand = true
 		}
@@ -228,7 +226,38 @@ func main(){
 						fmt.Println(itm.name)
 					}
 				}
-			
+				
+			case uinputp[0] == "use":
+				switch len(uinputp) {
+					case 1:
+						fmt.Println("Use what?")
+					case 2:
+						instr, ok := playerinv[uinputp[1]]
+						if ok {
+							fmt.Printf(instr.use())
+						} else {
+							fmt.Printf("You don't have %s.\n", uinputp[1])
+						}
+					case 3:
+						instr, ok := playerinv[uinputp[1]]
+						if ok {
+							target, ok := playerinv[uinputp[2]]
+							if ok {
+								fmt.Printf(instr.useon(&target))
+							} else {
+								target, ok := roomlist[location].inv[uinputp[2]]
+								if ok {
+									fmt.Printf(instr.useon(&target))
+								} else {
+									fmt.Printf("You don't see %s here.\n", uinputp[2])
+								}
+							}
+						} else {
+							fmt.Printf("You don't have %s.\n", uinputp[1])
+						}
+					default:
+						fmt.Println("Something went wrong.")
+				}
 			default:
 				dest, ok := roomlist[location].exits[uinputp[0]]
 				if ok == false {

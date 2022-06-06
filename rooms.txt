@@ -4,4 +4,4 @@
 104|Southwest Room|You are in the southwest room of the building. There is a trapdoor here.|east 103, north 101, trapdoor 004|
 201|Tower|You are in the tower. You can see the surrounding landscape.|down 101|
 001|Basement|You are in the basement. It is dark, but you are unlikely to be eaten by a grue.|up 101|
-004|Secret Room|You have found a secret room.|up 104|
+004|Secret Room|You have found a secret room.|up 104|gun
