@@ -134,6 +134,11 @@ func main(){
 		notacommand = false
 		uiscanner.Scan()
 		uinput := uiscanner.Text()
+		for len(uinput) == 0 {
+			fmt.Printf(">> ")
+			uiscanner.Scan()
+			uinput = uiscanner.Text()
+		}
 		uinputp := strings.Fields(uinput)
 		
 		//this part seems like there should be a better way to do it. I need to distinguish between recognised commands that may not
