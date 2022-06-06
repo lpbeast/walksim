@@ -46,7 +46,7 @@ func main(){
 	playerinv := make(map[string]Item)
 	location := "101"
 	runloop := true
-	suppressdesc := false
+	suppressdesc := true
 	var notacommand bool
 	
 	// read the rooms file and parse it out into the room list
@@ -106,6 +106,7 @@ func main(){
 
 	//print out the help entry once to get the player started
 	printhelp()
+	disproom(roomlist, location)
 	
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
@@ -113,7 +114,7 @@ func main(){
 			disproom(roomlist, location)
 		}
 		fmt.Printf(">> ")
-		suppressdesc = false
+		suppressdesc = true
 		notacommand = false
 		uiscanner := bufio.NewScanner(os.Stdin)
 		uiscanner.Scan()
@@ -154,7 +155,6 @@ func main(){
 				
 			case uinputp[0] == "help":
 				printhelp()
-				suppressdesc = true
 				
 			case uinputp[0] == "look":
 				if len(uinputp) == 1 {
@@ -172,7 +172,6 @@ func main(){
 						}
 					}
 				}
-				suppressdesc = true
 				
 			case uinputp[0] == "get":
 				if len(uinputp) == 1 {
@@ -182,11 +181,11 @@ func main(){
 					if ok {
 						playerinv[target.name] = target
 						delete(roomlist[location].inv, target.name)
+						fmt.Printf("You get the %s.\n", uinputp[1])
 					} else {
 						fmt.Printf("You can't get ye %s.\n", uinputp[1])
 					}
 				}
-				suppressdesc = true
 				
 			case uinputp[0] == "drop":
 				if len(uinputp) == 1 {
@@ -196,11 +195,11 @@ func main(){
 					if ok {
 						roomlist[location].inv[target.name] = target
 						delete(playerinv, target.name)
+						fmt.Printf("You drop the %s.\n", uinputp[1])
 					} else {
 						fmt.Printf("You don't have %s.\n", uinputp[1])
 					}
 				}
-				suppressdesc = true
 				
 			case uinputp[0] == "inv":
 				fmt.Println("You are carrying:")
@@ -211,7 +210,6 @@ func main(){
 						fmt.Println(itm.name)
 					}
 				}
-				suppressdesc = true
 			
 			default:
 				dest, ok := roomlist[location].exits[uinputp[0]]
@@ -221,9 +219,9 @@ func main(){
 					} else {
 						fmt.Printf("You can't go %v from here.\n", uinputp[0])
 					}
-					suppressdesc = true
 				} else {
 					location = dest
+					suppressdesc = false
 				}
 		}
 	}
