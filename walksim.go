@@ -13,8 +13,8 @@ type Item struct {
 	getable bool
 	hasinv bool
 	inv map[string]Item
-	onuse func
-	users map[string]func
+	onuse func() string
+	users map[string]func() string
 }
 
 type Room struct {
@@ -61,26 +61,25 @@ func (i *Item) useon(target *Item) string {
 }
 
 func contains(sl []string, target string) bool {
-	found := false
 	for _, elem := range sl{
 		if elem == target {
-			found = true
+			return true
 		}
 	}
-	return found
+	return false
 }
 
 func main(){
 	roomlist := make(map[string]Room)
 	invlist := make(map[string]Item)
 	playerinv := make(map[string]Item)
-	location := "101"
+	startloc := "101"
 	runloop := true
 	suppressdesc := true
 	verbs := []string{"go", "north", "east", "south", "west", "up", "down", "help", "look", "quit", "inv", "get", "drop", "use", "put"}
 	//north, east south, west, up, and down alias to "go north", etc. drop aliases to "put ITEM here".
 	//look by itself becomes "look here"
-	//prepos := []string{"in", "on", "to", "with"}
+	prepos := []string{"in", "on", "to", "with"}
 	var notacommand bool
 	
 	// read the rooms file and parse it out into the room list
@@ -138,7 +137,7 @@ func main(){
 		roomlist[roomid] = newroom
     }
 	
-	here := roomlist[location]
+	here := roomlist[startloc]
 
 	//print out the help entry once to get the player started
 	printhelp()
@@ -147,6 +146,7 @@ func main(){
 	
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
+		var verb, object, prep, recip string
 		if suppressdesc == false {
 			fmt.Println(here)
 		}
@@ -161,6 +161,22 @@ func main(){
 			uinput = uiscanner.Text()
 		}
 		uinputp := strings.Fields(uinput)
+		verb = uinputp[0]
+		//there has to be a better way to do this but i don't yet know what it is.
+		if len(uinputp) > 1 {
+			object = uinputp[1]
+		}
+		if len(uinputp) > 2 {
+			if contains(prepos, uinputp[2]) {
+				prep = uinputp[2]
+			} else {
+				recip = uinputp[2]
+			}
+		}
+		if len(uinputp) > 3 {
+			recip = uinputp[3]
+		}
+		fmt.Println(verb, object, prep, recip)
 		
 		//this part seems like there should be a better way to do it. I need to distinguish between recognised commands that may not
 		//be applicable to the situation, and things that aren't commands, so that I can give an appropriate error message.
