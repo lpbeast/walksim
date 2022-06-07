@@ -194,45 +194,45 @@ func main() {
 		//this part seems like there should be a better way to do it. I need to distinguish between recognised commands that may not
 		//be applicable to the situation, and things that aren't commands, so that I can give an appropriate error message.
 		switch {
-		case uinputp[0] == "n":
-			uinputp[0] = "north"
-		case uinputp[0] == "e":
-			uinputp[0] = "east"
-		case uinputp[0] == "s":
-			uinputp[0] = "south"
-		case uinputp[0] == "w":
-			uinputp[0] = "west"
-		case uinputp[0] == "u":
-			uinputp[0] = "up"
-		case uinputp[0] == "d":
-			uinputp[0] = "down"
-		case uinputp[0] == "q":
-			uinputp[0] = "quit"
-		case uinputp[0] == "h":
-			uinputp[0] = "help"
-		case uinputp[0] == "l":
-			uinputp[0] = "look"
-		case contains(verbs, uinputp[0]):
+		case verb == "n":
+			verb = "north"
+		case verb == "e":
+			verb = "east"
+		case verb == "s":
+			verb = "south"
+		case verb == "w":
+			verb = "west"
+		case verb == "u":
+			verb = "up"
+		case verb == "d":
+			verb = "down"
+		case verb == "q":
+			verb = "quit"
+		case verb == "h":
+			verb = "help"
+		case verb == "l":
+			verb = "look"
+		case contains(verbs, verb):
 		default:
 			notacommand = true
 		}
 
 		switch {
-		case uinputp[0] == "quit":
+		case verb == "quit":
 			runloop = false
 
-		case uinputp[0] == "help":
+		case verb == "help":
 			printhelp()
 
-		case uinputp[0] == "look":
-			if len(uinputp) == 1 {
+		case verb == "look":
+			if object == "here" || object == "" {
 				fmt.Println(here)
 			} else {
-				target, ok := here.inv[uinputp[1]]
+				target, ok := here.inv[object]
 				if ok {
 					fmt.Println(target)
 				} else {
-					target, ok := playerinv[uinputp[1]]
+					target, ok := playerinv[object]
 					if ok {
 						fmt.Println(target)
 					} else {
@@ -241,35 +241,39 @@ func main() {
 				}
 			}
 
-		case uinputp[0] == "get":
-			if len(uinputp) == 1 {
+		case verb == "get":
+			if object == "" {
 				fmt.Println("Get what?")
 			} else {
-				target, ok := here.inv[uinputp[1]]
+				target, ok := here.inv[object]
 				if ok {
-					playerinv[target.name] = target
-					delete(here.inv, target.name)
-					fmt.Printf("You get the %s.\n", uinputp[1])
+					if target.gettable {
+						playerinv[target.name] = target
+						delete(here.inv, target.name)
+						fmt.Printf("You get the %s.\n", object)
+					} else {
+						fmt.Printf("You can't pick up the %s.\n", object)
+					}
 				} else {
-					fmt.Printf("You can't get ye %s.\n", uinputp[1])
+					fmt.Printf("You don't see %s here.\n", object)
 				}
 			}
 
-		case uinputp[0] == "drop":
-			if len(uinputp) == 1 {
+		case verb == "drop":
+			if object == "" {
 				fmt.Println("Drop what?")
 			} else {
-				target, ok := playerinv[uinputp[1]]
+				target, ok := playerinv[object]
 				if ok {
 					here.inv[target.name] = target
 					delete(playerinv, target.name)
-					fmt.Printf("You drop the %s.\n", uinputp[1])
+					fmt.Printf("You drop the %s.\n", object)
 				} else {
-					fmt.Printf("You don't have %s.\n", uinputp[1])
+					fmt.Printf("You don't have %s.\n", object)
 				}
 			}
 
-		case uinputp[0] == "inv":
+		case verb == "inv":
 			fmt.Println("You are carrying:")
 			if len(playerinv) == 0 {
 				fmt.Println("Nothing.")
@@ -279,44 +283,42 @@ func main() {
 				}
 			}
 
-		case uinputp[0] == "use":
-			switch len(uinputp) {
-			case 1:
+		case verb == "use":
+			switch {
+			case object == "":
 				fmt.Println("Use what?")
-			case 2:
-				instr, ok := playerinv[uinputp[1]]
+			case recip = "":
+				instr, ok := playerinv[object]
 				if ok {
 					fmt.Printf(instr.use())
 				} else {
-					fmt.Printf("You don't have %s.\n", uinputp[1])
+					fmt.Printf("You don't have %s.\n", object)
 				}
-			case 3:
-				instr, ok := playerinv[uinputp[1]]
+			default:
+				instr, ok := playerinv[object]
 				if ok {
-					target, ok := playerinv[uinputp[2]]
+					target, ok := playerinv[recip]
 					if ok {
 						fmt.Printf(instr.useon(&target))
 					} else {
-						target, ok := here.inv[uinputp[2]]
+						target, ok := here.inv[recip]
 						if ok {
 							fmt.Printf(instr.useon(&target))
 						} else {
-							fmt.Printf("You don't see %s here.\n", uinputp[2])
+							fmt.Printf("You don't see %s here.\n", recip)
 						}
 					}
 				} else {
-					fmt.Printf("You don't have %s.\n", uinputp[1])
+					fmt.Printf("You don't have %s.\n", object)
 				}
-			default:
-				fmt.Println("Something went wrong.")
 			}
 		default:
-			dest, ok := here.exits[uinputp[0]]
+			dest, ok := here.exits[verb]
 			if ok == false {
 				if notacommand == true {
-					fmt.Printf("I don't understand what '%v' means here.\n", uinputp[0])
+					fmt.Printf("I don't understand what '%v' means here.\n", verb)
 				} else {
-					fmt.Printf("You can't go %v from here.\n", uinputp[0])
+					fmt.Printf("You can't go %v from here.\n", verb)
 				}
 			} else {
 				here = roomlist[dest]
