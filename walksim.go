@@ -5,23 +5,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"walksim/itm"
 )
-
-type Item struct {
-	name     string
-	desc     string
-	gettable bool
-	hasinv   bool
-	inv      map[string]Item
-	onuse    func(*Item) string
-	users    map[string]func(*Item) string
-}
 
 type Room struct {
 	name  string
 	desc  string
 	exits map[string]string
-	inv   map[string]Item
+	inv   map[string]itm.Item
 }
 
 func printhelp() {
@@ -41,25 +32,9 @@ func (r Room) String() string {
 	}
 	result += "."
 	for key, _ := range r.inv {
-		result += "\nYou see " + r.inv[key].name + " here."
+		result += "\nYou see " + r.inv[key].Name + " here."
 	}
 	return result
-}
-
-func (i Item) String() string {
-	return i.desc
-}
-
-func (i *Item) use() string {
-	return i.onuse(i)
-}
-
-func (i *Item) useon(target *Item) string {
-	instr, ok := target.users[i.name]
-	if ok {
-		return instr(i)
-	}
-	return "You can't use " + i.name + " on " + target.name + ".\n"
 }
 
 func contains(sl []string, target string) bool {
@@ -73,8 +48,8 @@ func contains(sl []string, target string) bool {
 
 func main() {
 	roomlist := make(map[string]Room)
-	invlist := make(map[string]Item)
-	playerinv := make(map[string]Item)
+	invlist := make(map[string]itm.Item)
+	playerinv := make(map[string]itm.Item)
 	startloc := "101"
 	runloop := true
 	suppressdesc := true
@@ -104,22 +79,22 @@ func main() {
 
 	iscanner := bufio.NewScanner(itemfile)
 	for iscanner.Scan() {
-		var newitem Item
+		var newitem itm.Item
 		rawitem := strings.Split(iscanner.Text(), "|")
-		newitem.name = rawitem[0]
-		newitem.desc = rawitem[1]
-		newitem.gettable = (rawitem[2] == "T")
-		newitem.hasinv = (rawitem[3] == "T")
-		newitem.onuse = func(i *Item) string {
-			return "You use " + i.name + ".\n"
+		newitem.Name = rawitem[0]
+		newitem.Desc = rawitem[1]
+		newitem.Gettable = (rawitem[2] == "T")
+		newitem.Hasinv = (rawitem[3] == "T")
+		newitem.Onuse = func(i *itm.Item) string {
+			return "You use " + i.Name + ".\n"
 		}
 		parsedusers := strings.Fields(rawitem[5])
 		for _, key := range parsedusers {
-			newitem.users[key] = func(i *Item) string {
-				return "You use " + key + " on " + i.name + ".\n"
+			newitem.Users[key] = func(i *itm.Item) string {
+				return "You use " + key + " on " + i.Name + ".\n"
 			}
 		}
-		invlist[newitem.name] = newitem
+		invlist[newitem.Name] = newitem
 	}
 
 	rscanner := bufio.NewScanner(roomfile)
@@ -140,11 +115,11 @@ func main() {
 		}
 		rawitems := rawroom[4]
 		itemlist := strings.Split(rawitems, ",")
-		newroom.inv = make(map[string]Item)
+		newroom.inv = make(map[string]itm.Item)
 		for _, itemname := range itemlist {
-			itm, ok := invlist[itemname]
+			item, ok := invlist[itemname]
 			if ok {
-				newroom.inv[itm.name] = itm
+				newroom.inv[item.Name] = item
 			}
 		}
 		roomlist[roomid] = newroom
@@ -247,9 +222,9 @@ func main() {
 			} else {
 				target, ok := here.inv[object]
 				if ok {
-					if target.gettable {
-						playerinv[target.name] = target
-						delete(here.inv, target.name)
+					if target.Gettable {
+						playerinv[target.Name] = target
+						delete(here.inv, target.Name)
 						fmt.Printf("You get the %s.\n", object)
 					} else {
 						fmt.Printf("You can't pick up the %s.\n", object)
@@ -265,8 +240,8 @@ func main() {
 			} else {
 				target, ok := playerinv[object]
 				if ok {
-					here.inv[target.name] = target
-					delete(playerinv, target.name)
+					here.inv[target.Name] = target
+					delete(playerinv, target.Name)
 					fmt.Printf("You drop the %s.\n", object)
 				} else {
 					fmt.Printf("You don't have %s.\n", object)
@@ -278,8 +253,8 @@ func main() {
 			if len(playerinv) == 0 {
 				fmt.Println("Nothing.")
 			} else {
-				for _, itm := range playerinv {
-					fmt.Println(itm.name)
+				for _, item := range playerinv {
+					fmt.Println(item.Name)
 				}
 			}
 
@@ -287,10 +262,10 @@ func main() {
 			switch {
 			case object == "":
 				fmt.Println("Use what?")
-			case recip = "":
+			case recip == "":
 				instr, ok := playerinv[object]
 				if ok {
-					fmt.Printf(instr.use())
+					fmt.Printf(instr.Use())
 				} else {
 					fmt.Printf("You don't have %s.\n", object)
 				}
@@ -299,11 +274,11 @@ func main() {
 				if ok {
 					target, ok := playerinv[recip]
 					if ok {
-						fmt.Printf(instr.useon(&target))
+						fmt.Printf(instr.Useon(&target))
 					} else {
 						target, ok := here.inv[recip]
 						if ok {
-							fmt.Printf(instr.useon(&target))
+							fmt.Printf(instr.Useon(&target))
 						} else {
 							fmt.Printf("You don't see %s here.\n", recip)
 						}
