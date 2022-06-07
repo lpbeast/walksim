@@ -10,6 +10,11 @@ import (
 type Item struct {
 	name string
 	desc string
+	getable bool
+	hasinv bool
+	inv map[string]Item
+	onuse func
+	users map[string]func
 }
 
 type Room struct {
@@ -24,7 +29,7 @@ func printhelp() {
 	fmt.Println("These commands can be abbreviated with the first letter of the word:")
 	fmt.Println("north, east, south, west, up, down, quit, help, look")
 	fmt.Println("These commands must be typed out in full:")
-	fmt.Println("get, drop, inv, use")
+	fmt.Println("get, drop, inv, use, go, put")
 	fmt.Println("")
 }
 
@@ -50,9 +55,19 @@ func (i *Item) use() string {
 	return result
 }
 
-func (i *Item) useon(target *Item) string{
+func (i *Item) useon(target *Item) string {
 	result := "You use " + i.name + " on " + target.name + ".\n"
 	return result
+}
+
+func contains(sl []string, target string) bool {
+	found := false
+	for _, elem := range sl{
+		if elem == target {
+			found = true
+		}
+	}
+	return found
 }
 
 func main(){
@@ -62,6 +77,10 @@ func main(){
 	location := "101"
 	runloop := true
 	suppressdesc := true
+	verbs := []string{"go", "north", "east", "south", "west", "up", "down", "help", "look", "quit", "inv", "get", "drop", "use", "put"}
+	//north, east south, west, up, and down alias to "go north", etc. drop aliases to "put ITEM here".
+	//look by itself becomes "look here"
+	//prepos := []string{"in", "on", "to", "with"}
 	var notacommand bool
 	
 	// read the rooms file and parse it out into the room list
@@ -118,16 +137,18 @@ func main(){
 		}
 		roomlist[roomid] = newroom
     }
+	
+	here := roomlist[location]
 
 	//print out the help entry once to get the player started
 	printhelp()
-	fmt.Println(roomlist[location])
+	fmt.Println(here)
 	uiscanner := bufio.NewScanner(os.Stdin)
 	
 	//main loop - print name and desc of current room, accept input, act on input
 	for runloop == true{
 		if suppressdesc == false {
-			fmt.Println(roomlist[location])
+			fmt.Println(here)
 		}
 		fmt.Printf(">> ")
 		suppressdesc = true
@@ -162,10 +183,7 @@ func main(){
 				uinputp[0] = "help"
 			case uinputp[0] == "l":
 				uinputp[0] = "look"
-			case uinputp[0] == "north" || uinputp[0] == "south" || uinputp[0] == "east" || uinputp[0] == "west":
-			case uinputp[0] == "up" || uinputp[0] == "down" || uinputp[0] == "help" || uinputp[0] == "quit" || uinputp[0] == "look":
-			case uinputp[0] == "get" || uinputp[0] == "drop" || uinputp[0] == "open" || uinputp[0] == "close":
-			case uinputp[0] == "inv" || uinputp[0] == "use":
+			case contains(verbs, uinputp[0]):
 			default:
 				notacommand = true
 		}
@@ -179,9 +197,9 @@ func main(){
 				
 			case uinputp[0] == "look":
 				if len(uinputp) == 1 {
-					fmt.Println(roomlist[location])
+					fmt.Println(here)
 				} else {
-					target, ok := roomlist[location].inv[uinputp[1]]
+					target, ok := here.inv[uinputp[1]]
 					if ok {
 						fmt.Println(target)
 					} else {
@@ -198,10 +216,10 @@ func main(){
 				if len(uinputp) == 1 {
 					fmt.Println("Get what?")
 				} else {
-					target, ok := roomlist[location].inv[uinputp[1]]
+					target, ok := here.inv[uinputp[1]]
 					if ok {
 						playerinv[target.name] = target
-						delete(roomlist[location].inv, target.name)
+						delete(here.inv, target.name)
 						fmt.Printf("You get the %s.\n", uinputp[1])
 					} else {
 						fmt.Printf("You can't get ye %s.\n", uinputp[1])
@@ -214,7 +232,7 @@ func main(){
 				} else {
 					target, ok := playerinv[uinputp[1]]
 					if ok {
-						roomlist[location].inv[target.name] = target
+						here.inv[target.name] = target
 						delete(playerinv, target.name)
 						fmt.Printf("You drop the %s.\n", uinputp[1])
 					} else {
@@ -250,7 +268,7 @@ func main(){
 							if ok {
 								fmt.Printf(instr.useon(&target))
 							} else {
-								target, ok := roomlist[location].inv[uinputp[2]]
+								target, ok := here.inv[uinputp[2]]
 								if ok {
 									fmt.Printf(instr.useon(&target))
 								} else {
@@ -264,7 +282,7 @@ func main(){
 						fmt.Println("Something went wrong.")
 				}
 			default:
-				dest, ok := roomlist[location].exits[uinputp[0]]
+				dest, ok := here.exits[uinputp[0]]
 				if ok == false {
 					if notacommand == true {
 						fmt.Printf("I don't understand what '%v' means here.\n", uinputp[0])
@@ -272,7 +290,7 @@ func main(){
 						fmt.Printf("You can't go %v from here.\n", uinputp[0])
 					}
 				} else {
-					location = dest
+					here = roomlist[dest]
 					suppressdesc = false
 				}
 		}
