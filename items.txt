@@ -1,3 +1,6 @@
-tea|A nice cup of tea.|
-tae|Almost, but not completely, unlike tea.|
-gun|An elegant firearm suitable for hanging on the wall.|
+tea|A nice cup of tea.|T|F|||
+tae|Almost, but not completely, unlike tea.|T|F|||
+gun|An elegant firearm suitable for hanging on the wall.|T|F|||
+chest|A big solid chest.|F|T|||
+bag|A large and sturdy gunnysack.|T|T|||
+rock|A large boulder the size of a small boulder.|F|F|||
